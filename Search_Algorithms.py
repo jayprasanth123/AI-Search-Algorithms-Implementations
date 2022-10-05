@@ -242,6 +242,58 @@ def astar_search(graph, start, goal):
 
     return None, None
 
+def greedy_search(graph, start, goal):
+
+    path = []
+    explored_nodes = list()
+
+    # Edge case check
+    if start == goal:
+        return path, explored_nodes
+
+    path.append(start)
+    path_cost = geographical_heuristic(start, goal)
+    # Priority Queue to keep sorted distance travelled till now
+    frontier = [(path_cost, path)]
+    while len(frontier) > 0:
+        # pop a node from the queue
+        path_cost_till_now, path_till_now = pop_frontier(frontier)
+        current_node = path_till_now[-1]
+        path_cost_till_now = geographical_heuristic(current_node, goal)
+        explored_nodes.append(current_node)
+        # test goal condition
+        if current_node == goal:
+            return path_till_now, explored_nodes
+
+        neighbours = graph[current_node]
+
+        neighbours_list_int = [int(n) for n in neighbours]
+        neighbours_list_int.sort(reverse=False)
+        neighbours_list_str = [str(n) for n in neighbours_list_int]
+
+        for neighbour in neighbours_list_str:
+            path_to_neighbour = path_till_now.copy()
+            path_to_neighbour.append(neighbour)
+
+            # extra_cost = graph.get_edge_weight(current_node, neighbour)
+            extra_cost = 1
+            neighbour_cost = extra_cost + path_cost_till_now + geographical_heuristic(neighbour, goal)
+            new_element = (neighbour_cost, path_to_neighbour)
+
+            is_there, indexx, neighbour_old_cost, _ = get_frontier_params_new(neighbour, frontier)
+
+            if (neighbour not in explored_nodes) and not is_there:
+                frontier.append(new_element)
+
+            # If the neighbour is in frontier but there exists a
+            # costlier path to this neighbour, remove that costly path
+            elif is_there:
+                if neighbour_old_cost > neighbour_cost:
+                    frontier.pop(indexx)
+                    frontier.append(new_element)
+
+    return None, None
+
 
 def pop_frontier(frontier):
     if len(frontier) == 0:
@@ -317,6 +369,13 @@ if __name__ == '__main__':
     print("Path_astar:", path_astar)
     print("Explored Nodes A Star: ", explored_astar)
     print(len(explored_astar))
+    print()
+    
+    print("============ Greedy Search ================")
+    path_greedy, explored_greedy = greedy_search(graph_neighbours, '0', '49')
+    print("Path_Greedy:", path_greedy)
+    print("Explored Nodes Greedy: ", explored_greedy)
+    print(len(explored_greedy))
     print()
 
     print("============ Bottleneck Astar Search ================")
